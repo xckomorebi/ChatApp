@@ -9,6 +9,7 @@ class Status(Enum):
     YES = "yes"
     NO = "no"
 
+
 class Client:
     @classmethod
     def new_client(cls, ip, port, client_name, status=Status.YES):
@@ -37,3 +38,6 @@ class Client:
     def save(self):
         pass
 
+
+class Group:
+    pass
