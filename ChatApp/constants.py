@@ -1,0 +1,7 @@
+import os
+
+DB_NAME = "test_db.db"
+DB_PATH = os.path.join("resource", DB_NAME)
+
+PORT_MIN = 1024
+PORT_MAX = 65535
