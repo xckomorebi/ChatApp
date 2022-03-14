@@ -6,3 +6,6 @@ test.py
 .vscode
 
 *.db
+
+*.pdf
+*.sh

@@ -1,7 +1,9 @@
+import json
 import os
 import sqlite3
+import sys
 
-from constants import DB_PATH, PORT_MIN, PORT_MAX
+from ChatApp.constants import DB_PATH, PORT_MAX, PORT_MIN
 
 
 def check_path(path):
@@ -36,3 +38,17 @@ def is_valid_port(port: int):
     if not isinstance(port, int):
         return False
     return PORT_MIN <= port <= PORT_MAX
+
+
+def pack_message(msg, **kwargs):
+    kwargs["msg"] = msg
+    return json.dumps(kwargs).encode()
+
+
+def unpack_message(rcv_msg):
+    return json.loads(rcv_msg.decode())
+
+
+def show_message(msg):
+    sys.stdout.write("\r" + "[re]\n")
+    sys.stdout.write("\r" + ">>> ")

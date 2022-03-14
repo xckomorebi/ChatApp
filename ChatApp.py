@@ -9,7 +9,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     callee = parser.add_mutually_exclusive_group()
     callee.add_argument("-s", "--server", metavar="PORT", nargs=1)
-    callee.add_argument("-c", "--client", metavar=("IP", "PORT", "CLIENT_NAME"), nargs=3)
+    callee.add_argument("-c", "--client", metavar=("NAME", "SERVER-IP", "SERVER-PORT", "CLIENT-PORT"), nargs=4)
     args = parser.parse_args()
     return parser, args
 
