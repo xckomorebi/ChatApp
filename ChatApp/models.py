@@ -1,24 +1,24 @@
-# from enum import Enum
-
 from ChatApp.utils import get_conn
-
-# class Status(Enum):
-#     YES = "yes"
-#     NO = "no"
 
 
 class User:
-
-    # @classmethod
-    # def new_client(cls, ip, port, client_name, status="yes"):
-    #     Client._check_param(ip, port, client_name, status)
-    #     return cls(ip, port, client_name, status)
 
     def __init__(self, name, ip, port, status="yes"):
         self.name = name
         self.ip = ip
         self.port = port
         self.status = status
+
+    @classmethod
+    def from_dict(cls, dict_):
+        return cls(**dict_)
+
+    @classmethod
+    def from_list(cls, list_):
+        result = []
+        for dict_ in list_:
+            result.append(cls.from_dict(dict_))
+        return result
 
     @property
     def addr(self):
@@ -27,21 +27,46 @@ class User:
     def __repr__(self):
         return f"User({self.name}, {self.addr}, {self.status})"
 
-    # @staticmethod
-    # def _check_param(ip, port, client_name, status):
-    #     assert isinstance(ip, str)
-    #     assert isinstance(port, int)
-    #     assert isinstance(client_name, str)
-    #     assert isinstance(status, Status)
+    def exists(self):
+        return self.get_by_name(self.name) is not None
 
-    #     if not is_valid_ip(ip):
-    #         raise InvalidIpException
-
-    #     if not is_valid_port(port):
-    #         raise InvalidPortException
+    def save_or_update(self):
+        if self.exists():
+            self.update()
+        else:
+            self.save()
 
     def save(self):
-        pass
+        sql = "insert into user(name, ip, port, status) " \
+              "values (?, ?, ?, ?)"
+        conn = get_conn()
+        cursor = conn.cursor()
+        cursor.execute(sql, (self.name, self.ip, self.port, self.status))
+        conn.commit()
+
+    def update(self):
+        sql = "update user set ip = ?, port = ?, status = ? " \
+              "where name = ?"
+        conn = get_conn()
+        cursor = conn.cursor()
+        cursor.execute(sql, (self.ip, self.port, self.status, self.name))
+        conn.commit()
+
+    @classmethod
+    def save_from_list(cls, users):
+        users = cls.from_list(users)
+        for user in users:
+            user.save_or_update()
+
+    @classmethod
+    def get_all_active_users(cls):
+        sql = "select * from user where status='yes'"
+        conn = get_conn()
+        cursor = conn.cursor()
+        cursor.execute(sql)
+        result = cursor.fetchall()
+
+        return result
 
     @classmethod
     def get_all(cls):
@@ -51,11 +76,7 @@ class User:
         cursor.execute(sql)
         result = cursor.fetchall()
 
-        users = []
-        for user in result:
-            users.append(cls(**user))
-
-        return users
+        return result
 
     @classmethod
     def get_by_name(cls, name):
