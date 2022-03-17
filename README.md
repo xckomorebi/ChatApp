@@ -38,6 +38,9 @@ $ ChatApp -c NAME SERVER-IP SERVER-PORT CLIENT-PORT
 
 TODO
 ===
+
+- [ ] udp hole punching ### FATAL!!!!!!!!!!!!!!!!!!!!
+
 - [x] Command options
 - [x] Makefile
 - [x] Chatting

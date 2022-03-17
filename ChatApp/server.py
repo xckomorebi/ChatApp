@@ -1,15 +1,36 @@
+import threading
 from socket import *
+
 from ChatApp.models import User
+from ChatApp.msg import Msg, MsgType
+from ChatApp.settings import TIMEOUT
 
-from ChatApp.utils import pack_message, unpack_message
 
-def server_handle_received_msg(sock, msg, addr):
-    rcv_msg = unpack_message(msg)
-    if rcv_msg.get("type_") == "first_reg":
-        user = User(rcv_msg["msg"], addr[0], addr[1])
+def send(msg):
+    sock = socket(AF_INET, SOCK_DGRAM)
+    sock.settimeout(TIMEOUT)
+
+    # if msg.type_
+
+
+def broadcast(msg):
+    pass
+
+
+def server_handle_received_msg(socket, msg, addr):
+    rcv_msg = Msg.unpack(msg)
+    type_ = rcv_msg.type_
+    if type_ == MsgType.CREATE:
+        user = User(rcv_msg.from_, addr[0], addr[1])
         user.save_or_update()
-        msg = pack_message("", users=User.get_all(), type_="update_table")
-        sock.sendto(msg, addr)
+        msg = Msg(to=rcv_msg.from_, type_=MsgType.CREATED)
+        msg.send(socket)
+
+        msg = Msg(content=User.get_all,
+                  type_=MsgType.UPDATE_TABLE,
+                  from_=rcv_msg.from_)
+
+        broadcast(msg) # TODO
 
 
 def server_main(port: int):

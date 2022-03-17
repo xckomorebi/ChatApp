@@ -4,7 +4,7 @@ import sqlite3
 import sys
 
 from ChatApp.exceptions import InvalidIpException, InvalidPortException
-from ChatApp.constants import DB_PATH, PORT_MAX, PORT_MIN
+from ChatApp.settings import DB_PATH, PORT_MAX, PORT_MIN
 
 
 def check_path(path):
@@ -50,13 +50,3 @@ def check_port(port):
         raise InvalidPortException
     
     return port
-
-
-
-def pack_message(msg, **kwargs):
-    kwargs["msg"] = msg
-    return json.dumps(kwargs).encode()
-
-
-def unpack_message(rcv_msg):
-    return json.loads(rcv_msg.decode())

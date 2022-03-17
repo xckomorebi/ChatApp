@@ -1,71 +1,70 @@
 import threading
 from socket import *
 
-from ChatApp.constants import DEBUG, TIMEOUT
+from ChatApp.settings import TIMEOUT
 from ChatApp.models import User
-from ChatApp.utils import pack_message, unpack_message
+from ChatApp.msg import Msg, MsgType
 
 
-def handle_sent_msg(msg, name, server_ip, server_port):
-    words = msg.split()
+def handle_sent_msg(input_):
     sock = socket(AF_INET, SOCK_DGRAM)
     sock.settimeout(TIMEOUT)
 
-    if words[0] == "send" and len(words) >= 3:
-        type_ = words.pop(0)
-        name = words.pop(0)
-        user = User.get_by_name(name)
 
-        if not user:
-            raise Exception
+    msg = Msg.from_input(input_)
+    type_ = msg.type_
 
-        snd_msg = pack_message(msg=" ".join(words), type_=type_)
-        sock.sendto(snd_msg, user.addr)
+    msg.send(sock)
 
+    if type_ == MsgType.SEND:
         try:
-            rcv_msg = sock.recv(2048)
-            msg = unpack_message(rcv_msg)
-            if msg.get("type_") == "ack":
-                print(f">>> [Message received by <{user.name}>]")
-            else:
-                # TODO
-                print("[No ACK from <{user.name}>, message sent to server.]")
+            rcv_packet = sock.recv(2048)
+            rcv_msg = Msg.unpack(rcv_packet)
+            if rcv_msg.type_ == MsgType.ACK:
+                print(f">>> [Message received by <{rcv_msg.from_}>]")
         except Exception as e:
-            # TODO logging system
-            pass
-    elif words[0] == "first_reg":
-        snd_msg = pack_message(name, type_="first_reg")
-        addr = (server_ip, server_port)
+            print(e)
+            print("[No ACK from <{msg.to}>, message sent to server.]")
+            msg.to_server = True
+            msg.send()
+    elif type_ == MsgType.CREATE:
         try:
-            sock.sendto(snd_msg, addr)
-            rcv_msg = sock.recv(2048)
-            msg = unpack_message(rcv_msg)
-            User.save_from_list(msg.get("users", []))
-            print(">>> [Welcome, You are registered.]")
-            print(">>> [Client table updated.]") # TODO this should be boardcast
-
-    elif words[0] == "reg" and len(words) == 2:
-        pass
-    elif words[0] == "dereg":
-        pass
-    elif words[0] == "send_all":
+            rcv_packet = sock.recv(2048)
+            rcv_msg = Msg.unpack(rcv_packet)
+            if rcv_msg.type_ == MsgType.REGISTERED:
+                print(">>> [Welcome, You are registered.]")
+            elif rcv_msg.type_ == MsgType.UESR_EXISTS:
+                print(f">>> [Client {msg.from_} exists!!]")
+        except Exception as e:
+            print(e)
+    elif type_ == "send_all":
         pass
 
 
-def handle_received_msg(msg, addr, listen_sock):
-    rcv_msg = unpack_message(msg)
-    if rcv_msg.get("type_") == "send":
-        print("test_user: ", rcv_msg.get("msg"))
-        ack_msg = pack_message("", type_="ack")
-        listen_sock.sendto(ack_msg, addr)
+def handle_received_msg(msg, addr, socket):
+    rcv_msg = Msg.unpack(msg)
+    type_ = rcv_msg.type_
+
+    if type_ == MsgType.SEND:
+        print(f"{rcv_msg.from_}: {rcv_msg.content}")
+        print(">>> ", end="")
+        ack_msg = Msg(type_=MsgType.ACK,
+                      to=rcv_msg.from_,
+                      addr=addr)
+
+        ack_msg.send(socket)
+    elif type_ == MsgType.UPDATE_TABLE:
+        User.save_from_list(rcv_msg.content)
+    elif type_ == None:
+        pass
 
 
-def client_send_msg(name, server_ip, server_port):
-    msg = "first_reg"
-    handle_sent_msg(msg, name, server_ip, server_port)
+def client_send_msg():
+    msg = "create"
+    handle_sent_msg(msg)
     while True:
         msg = input(">>> ")
-        handle_sent_msg(msg, name, server_ip, server_port)
+        handle_sent_msg(msg)
 
 
 def client_receive_msg(listen_sock):
@@ -82,12 +81,13 @@ def client_main(name: str, server_ip: str, server_port: int, client_port: int):
     listen_sock = socket(AF_INET, SOCK_DGRAM)
     listen_sock.bind(("", client_port))
 
+    Msg.server_addr = (server_ip, server_port)
+    Msg.name = name
 
     # TODO switch to select.select()
     receive = threading.Thread(target=client_receive_msg,
                                args=(listen_sock, ))
-    send = threading.Thread(target=client_send_msg,
-                            args=(name, server_ip, server_port, ))
+    send = threading.Thread(target=client_send_msg)
 
     receive.start()
     send.start()
