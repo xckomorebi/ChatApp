@@ -1,4 +1,28 @@
-.PHONY: sync, test
+mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
+mkfile_dir := $(dir $(mkfile_path))
+
+.PHONY: init_user, init_message, init_db, install
+
+init_user: sql/user.sql
+	@cat sql/user.sql | sqlite3 resource/chatapp.db
+
+init_message: sql/message.sql
+	@cat sql/message.sql | sqlite3 resource/chatapp.db
+
+init_db: init_user, init_message
+
+install: init_db
+	@while true; do \
+		read -p "Symlink ChatApp.py to /usr/local/bin/ChatApp [Y/N] " yn; \
+		case $$yn in \
+			[Yy]* ) ln -sF ${mkfile_dir}/ChatApp.py /usr/local/bin/ChatApp \
+			&& echo ChatApp successfully installed!!; break;; \
+			[Nn]* ) exit;; \
+			* ) echo "Please answer yes or no.";;\
+		esac;\
+	done
+
+# the following command is only for testing
 
 sync:
 	rsync -auv . xuchen@xc-mbp-16:~/Documents/repo/ChatApp/

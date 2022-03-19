@@ -1,4 +1,4 @@
-create table user
+create table if not exists user 
 (
     name   varchar(50) not null
         constraint user_pk
@@ -8,6 +8,6 @@ create table user
     status varchar(3) default 'yes' not null
 );
 
-create unique index user_name_uindex
+create unique index if not exists user_name_uindex
     on user (name);
 

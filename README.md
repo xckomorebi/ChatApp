@@ -37,17 +37,18 @@ $ ChatApp -c NAME SERVER-IP SERVER-PORT CLIENT-PORT
 Command format
 ===
 - [x] create \<user>
+
     broadcast to all user
 
 - [x] send \<name> \<message>
 
-- []
+- [ ]
 
 
 TODO
 ===
 
-- [ ] udp hole punching ### FATAL!!!!!!!!!!!!!!!!!!!!
+~~- udp hole punching ### FATAL!!!!!!!!!!!!!!!!!!!!~~
 
 - [x] Command options
 - [x] Makefile
@@ -63,6 +64,8 @@ TODO
   - [ ] Client
   - [ ] Server
 - [ ] Group Chat
+  - [x] basic
+  - [ ] ack
 - [ ] Testing
 - [ ] github pipeline (low priority)
 - [ ] Deployment

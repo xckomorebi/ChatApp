@@ -1,4 +1,4 @@
-create table message
+create table if not exists message
 (
     id      integer     not null
         constraint message_pk
