@@ -34,6 +34,14 @@ $ ChatApp -c NAME SERVER-IP SERVER-PORT CLIENT-PORT
 >>>
 ```
 
+Command format
+===
+- [x] create \<user>
+    broadcast to all user
+
+- [x] send \<name> \<message>
+
+- []
 
 
 TODO
@@ -45,9 +53,9 @@ TODO
 - [x] Makefile
 - [x] Chatting
 - [ ] Logging
-- [ ] Registration
-  - [ ] Client mode
-  - [ ] Server mode
+- [x] Registration
+  - [x] Client mode
+  - [x] Server mode
 - [ ] De-registration
   - [ ] Client
   - [ ] Server

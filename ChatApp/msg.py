@@ -2,7 +2,7 @@ import json
 from enum import Enum
 from typing import ByteString
 
-from ChatApp import settings
+# from ChatApp import settings
 from ChatApp.models import User
 
 
@@ -10,9 +10,12 @@ class MsgType(str, Enum):
     CREATE = "create"
     CREATED = "created"
     REG = "reg"
+    UPDATE_TABLE = "update_table"
     SEND = "send"
     ACK = "ack"
-    UPDATE_TABLE = "update_table"
+    SEND_ALL = "send_all"
+    SEND_ALL_ACK = "send_all_ack"
+    STORE = "store"
 
 
 class Msg:
@@ -40,9 +43,11 @@ class Msg:
         msg.type_ = MsgType(words.pop(0))
         if msg.type_ == MsgType.SEND:
             msg.to = words.pop(0)
-        if msg.type_ == MsgType.REG:
+        elif msg.type_ == MsgType.REG:
             msg.to_server = True
-        if msg.type_ == MsgType.CREATE:
+        elif msg.type_ == MsgType.CREATE:
+            msg.to_server = True
+        elif msg.type_ == MsgType.SEND_ALL:
             msg.to_server = True
         msg.content = " ".join(words)
 
@@ -64,6 +69,14 @@ class Msg:
             setattr(self, k, v)
 
         socket.sendto(self.pack(), addr)
+    
+    def get_receiver_list(self):
+        users = User.get_all()
+        from_ = self.from_
+
+        receivers = [u.get("name") for u in users if u.get("name") != from_]
+
+        return receivers
 
     def pack(self):
         return json.dumps(self.__dict__).encode()

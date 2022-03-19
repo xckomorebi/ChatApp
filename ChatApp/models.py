@@ -1,4 +1,4 @@
-from ChatApp.utils import get_conn
+from ChatApp.utils import get_conn, get_timestamp
 
 
 class User:
@@ -86,3 +86,43 @@ class User:
         cursor.execute(sql, (name, ))
         user = cursor.fetchone()
         return cls(**user) if user else None
+
+
+class Message:
+
+    def __init__(self,
+                 content,
+                 from_,
+                 to,
+                 status="yes",
+                 timestamp=get_timestamp()):
+        self.content = content
+        self.from_ = from_
+        self.to = to
+        self.status = status
+        self.timestamp = timestamp
+
+    def save(self):
+        sql = "insert into message(content, from_, `to`) " \
+              "values(?, ?, ?)"
+        conn = get_conn()
+        cursor = conn.cursor()
+        cursor.execute(sql, (self.content, self.from_, self.to))
+        cursor.commit()
+
+    @classmethod
+    def get_by_name(cls, name):
+        sql = "select * from message where status='yes' and from_=?"
+        conn = get_conn()
+        cursor = conn.cursor()
+        cursor.execute(sql, (name, ))
+        messages = cursor.fetchall()
+        return messages
+
+    @classmethod
+    def clear_message_by_name(cls, name):
+        sql = "update message set status='no' where from_=?"
+        conn = get_conn()
+        cursor = conn.cursor()
+        cursor.execute(sql, (name, ))
+        cursor.commit()

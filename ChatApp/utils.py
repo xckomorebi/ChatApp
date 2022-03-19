@@ -3,6 +3,8 @@ import os
 import sqlite3
 import sys
 
+from datetime import datetime
+
 from ChatApp.exceptions import InvalidIpException, InvalidPortException
 from ChatApp.settings import DB_PATH, PORT_MAX, PORT_MIN
 
@@ -50,3 +52,6 @@ def check_port(port):
         raise InvalidPortException
     
     return port
+
+def get_timestamp():
+    return '{:%Y-%m-%d %H:%M:%S}'.format(datetime.now())

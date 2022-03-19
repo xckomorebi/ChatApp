@@ -1,36 +1,62 @@
 import threading
 from socket import *
 
-from ChatApp.models import User
+from ChatApp.models import User, Message
 from ChatApp.msg import Msg, MsgType
-from ChatApp.settings import TIMEOUT
+from ChatApp.settings import TIMEOUT, DEBUG
 
 
-def send(msg):
+def send(msg, receiver):
     sock = socket(AF_INET, SOCK_DGRAM)
     sock.settimeout(TIMEOUT)
 
-    # if msg.type_
+    msg.to = receiver
+    msg.send(sock)
+
+    if msg.type_ == MsgType.UPDATE_TABLE:
+        pass
+    elif msg.type_ == MsgType.SEND_ALL:
+        # TODO
+        pass
 
 
-def broadcast(msg):
-    pass
+
+def broadcast(msg: Msg):
+    receivers = msg.get_receiver_list()
+    threads = []
+
+    for receiver in receivers:
+        thread = threading.Thread(target=send, args=(msg, receiver, ))
+        thread.start()
+        threads.append(thread)
+    
+    for thread in threads:
+        thread.join()
 
 
 def server_handle_received_msg(socket, msg, addr):
     rcv_msg = Msg.unpack(msg)
+
+    if DEBUG:
+        print(addr, rcv_msg.__dict__)
+
     type_ = rcv_msg.type_
     if type_ == MsgType.CREATE:
-        user = User(rcv_msg.from_, addr[0], addr[1])
+        user = User(rcv_msg.from_, addr[0], int(rcv_msg.content))
         user.save_or_update()
-        msg = Msg(to=rcv_msg.from_, type_=MsgType.CREATED)
+        msg = Msg(to=rcv_msg.from_, type_=MsgType.CREATED, addr=addr)
         msg.send(socket)
 
-        msg = Msg(content=User.get_all,
-                  type_=MsgType.UPDATE_TABLE,
-                  from_=rcv_msg.from_)
+        msg = Msg(content=User.get_all(),
+                  type_=MsgType.UPDATE_TABLE)
 
-        broadcast(msg) # TODO
+        broadcast(msg)
+    elif type_ == MsgType.STORE: 
+        message  = Message(rcv_msg.content, rcv_msg.from_, rcv_msg.to)
+        message.save()
+    elif type_ ==  MsgType.SEND_ALL:
+        rcv_msg.to_server = False
+        broadcast(rcv_msg)
 
 
 def server_main(port: int):
