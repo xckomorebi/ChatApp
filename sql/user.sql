@@ -10,4 +10,3 @@ create table if not exists user
 
 create unique index if not exists user_name_uindex
     on user (name);
-

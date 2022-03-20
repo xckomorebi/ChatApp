@@ -11,6 +11,6 @@ PORT_MAX = 65535
 DEBUG = os.getenv("CHAT_APP_DEBUG", False)
 
 if DEBUG:
-    TIMEOUT = 1000
+    TIMEOUT = 2
 else:
     TIMEOUT = 0.5

@@ -4,6 +4,7 @@ from socket import *
 from ChatApp.models import User, Message
 from ChatApp.msg import Msg, MsgType
 from ChatApp.settings import TIMEOUT, DEBUG
+from ChatApp.utils import get_timestamp
 
 
 def send(msg, receiver):
@@ -20,7 +21,6 @@ def send(msg, receiver):
         pass
 
 
-
 def broadcast(msg: Msg):
     receivers = msg.get_receiver_list()
     threads = []
@@ -29,7 +29,7 @@ def broadcast(msg: Msg):
         thread = threading.Thread(target=send, args=(msg, receiver, ))
         thread.start()
         threads.append(thread)
-    
+
     for thread in threads:
         thread.join()
 
@@ -51,10 +51,22 @@ def server_handle_received_msg(socket, msg, addr):
                   type_=MsgType.UPDATE_TABLE)
 
         broadcast(msg)
-    elif type_ == MsgType.STORE: 
-        message  = Message(rcv_msg.content, rcv_msg.from_, rcv_msg.to)
+    elif type_ == MsgType.STORE:
+        message = Message(rcv_msg.content,
+                          rcv_msg.from_,
+                          rcv_msg.to,
+                          timestamp=get_timestamp())
         message.save()
-    elif type_ ==  MsgType.SEND_ALL:
+
+        user = User.get_by_name(rcv_msg.to)
+        if user:
+            user.status = "no"
+            user.save_or_update()
+            Msg(type_=MsgType.STORE_ACK, addr=addr).send(socket)
+            msg = Msg(content=[user.__dict__],
+                      type_=MsgType.UPDATE_TABLE)
+            broadcast(msg)
+    elif type_ == MsgType.SEND_ALL:
         rcv_msg.to_server = False
         broadcast(rcv_msg)
 

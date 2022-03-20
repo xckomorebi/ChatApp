@@ -103,12 +103,12 @@ class Message:
         self.timestamp = timestamp
 
     def save(self):
-        sql = "insert into message(content, from_, `to`) " \
-              "values(?, ?, ?)"
+        sql = "insert into message(content, from_, `to`, timestamp) " \
+              "values(?, ?, ?, ?)"
         conn = get_conn()
         cursor = conn.cursor()
-        cursor.execute(sql, (self.content, self.from_, self.to))
-        cursor.commit()
+        cursor.execute(sql, (self.content, self.from_, self.to, self.timestamp))
+        conn.commit()
 
     @classmethod
     def get_by_name(cls, name):
@@ -125,4 +125,4 @@ class Message:
         conn = get_conn()
         cursor = conn.cursor()
         cursor.execute(sql, (name, ))
-        cursor.commit()
+        conn.commit()

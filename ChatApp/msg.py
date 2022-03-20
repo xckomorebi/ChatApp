@@ -3,19 +3,21 @@ from enum import Enum
 from typing import ByteString
 
 # from ChatApp import settings
-from ChatApp.models import User
+from ChatApp.models import User, Message
 
 
 class MsgType(str, Enum):
     CREATE = "create"
     CREATED = "created"
     REG = "reg"
+    DEREG = "dereg"
     UPDATE_TABLE = "update_table"
     SEND = "send"
     ACK = "ack"
     SEND_ALL = "send_all"
     SEND_ALL_ACK = "send_all_ack"
     STORE = "store"
+    STORE_ACK = "store_ack"
 
 
 class Msg:
@@ -45,16 +47,24 @@ class Msg:
             msg.to = words.pop(0)
         elif msg.type_ == MsgType.REG:
             msg.to_server = True
+        elif msg.type_ == MsgType.DEREG:
+            msg.to_server = True
         elif msg.type_ == MsgType.CREATE:
             msg.to_server = True
         elif msg.type_ == MsgType.SEND_ALL:
             msg.to_server = True
+
         msg.content = " ".join(words)
 
         for k, v in kwargs:
             setattr(msg, k, v)
 
         return msg
+
+    def to_message(self):
+        return Message(self.content,
+                       self.from_,
+                       self.to)
 
     def send(self, socket, **kwargs):
         if self.addr:
@@ -69,7 +79,7 @@ class Msg:
             setattr(self, k, v)
 
         socket.sendto(self.pack(), addr)
-    
+
     def get_receiver_list(self):
         users = User.get_all()
         from_ = self.from_
@@ -85,4 +95,3 @@ class Msg:
     def unpack(cls, msg: ByteString):
         msg = json.loads(msg.decode())
         return Msg(**msg)
-    
