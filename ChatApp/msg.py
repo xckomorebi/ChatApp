@@ -11,6 +11,7 @@ class MsgType(str, Enum):
     CREATED = "created"
     REG = "reg"
     DEREG = "dereg"
+    DEREG_ACK = "dereg_ack"
     UPDATE_TABLE = "update_table"
     SEND = "send"
     ACK = "ack"

@@ -37,8 +37,7 @@ def handle_sent_msg(input_):
         for retry in range(5):
             try:
                 msg.send(sock)
-                rcv_packet = sock.recv(2048)
-                rcv_msg = Msg.unpack(rcv_packet)
+                rcv_msg = Msg.unpack(sock.recv(2048))
                 if rcv_msg.type_ == MsgType.CREATED:
                     print(">>> [Welcome, You are registered.]")
                     return
@@ -48,8 +47,20 @@ def handle_sent_msg(input_):
         print(">>> [Server not responding]\n>>> [Exiting]")
         os._exit(0)
     elif type_ == MsgType.DEREG:
-        msg.send(sock)
-        STATUS = False
+        for retry in range(5):
+            try:
+                msg.send(sock)
+                rcv_msg = Msg.unpack(sock.recv(2048))
+                if rcv_msg.type_ == MsgType.DEREG_ACK:
+                    print(">>> [You are Offline. Bye.]")
+                    STATUS = False
+
+                    return
+            except timeout:
+                pass
+        print(">>> [Server not responding]\n>>> [Exiting]")
+        os._exit(0)
+        
     elif type_ == MsgType.REG:
         msg.send(sock)
         STATUS = True
@@ -62,6 +73,8 @@ def handle_sent_msg(input_):
 
 
 def handle_received_msg(msg, addr, socket):
+    global STATUS
+
     rcv_msg = Msg.unpack(msg)
     type_ = rcv_msg.type_
 
@@ -77,6 +90,8 @@ def handle_received_msg(msg, addr, socket):
         print("[Client table updated.]\n>>> ", end="")
     elif type_ == MsgType.SEND_ALL:
         print(f"[Channel_Message <{rcv_msg.from_}>: {rcv_msg.content}]\n>>> ", end="")
+    elif type_ == MsgType.DEREG_ACK:
+        pass
 
 
 def client_send_msg():
@@ -98,11 +113,11 @@ def client_send_msg():
 
 def client_receive_msg(listen_sock):
     while True:
+        msg, addr = listen_sock.recvfrom(2048)
+
         if STATUS:
-            msg, addr = listen_sock.recvfrom(2048)
             handle_received_msg(msg, addr, listen_sock)
-        else:
-            pass
+
 
 
 def client_main(name: str, server_ip: str, server_port: int, client_port: int):

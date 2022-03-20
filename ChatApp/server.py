@@ -34,7 +34,7 @@ def broadcast(msg: Msg):
         thread.join()
 
 
-def server_handle_received_msg(socket, msg, addr):
+def server_handle_received_msg(sock, msg, addr):
     rcv_msg = Msg.unpack(msg)
 
     if DEBUG:
@@ -45,7 +45,7 @@ def server_handle_received_msg(socket, msg, addr):
         user = User(rcv_msg.from_, addr[0], int(rcv_msg.content))
         user.save_or_update()
         msg = Msg(to=rcv_msg.from_, type_=MsgType.CREATED, addr=addr)
-        msg.send(socket)
+        msg.send(sock)
 
         msg = Msg(content=User.get_all(),
                   type_=MsgType.UPDATE_TABLE)
@@ -62,13 +62,21 @@ def server_handle_received_msg(socket, msg, addr):
         if user:
             user.status = "no"
             user.save_or_update()
-            Msg(type_=MsgType.STORE_ACK, addr=addr).send(socket)
+            Msg(type_=MsgType.STORE_ACK, addr=addr).send(sock)
             msg = Msg(content=[user.__dict__],
                       type_=MsgType.UPDATE_TABLE)
             broadcast(msg)
     elif type_ == MsgType.SEND_ALL:
         rcv_msg.to_server = False
         broadcast(rcv_msg)
+    elif type_ == MsgType.DEREG:
+        user = User.get_by_name(rcv_msg.from_)
+        user.status = "no"
+        user.save_or_update()
+        Msg(type_=MsgType.DEREG_ACK, addr=addr).send(sock)
+        msg = Msg(content=[user.__dict__],
+                  type_=MsgType.UPDATE_TABLE)
+        broadcast(msg)
 
 
 def server_main(port: int):
