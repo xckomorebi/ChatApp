@@ -7,9 +7,9 @@ from ChatApp.models import User, Message
 
 
 class MsgType(str, Enum):
-    CREATE = "create"
-    CREATED = "created"
     REG = "reg"
+    CREATED = "created"
+    REG_ACK = "reg_ack"
     DEREG = "dereg"
     DEREG_ACK = "dereg_ack"
     UPDATE_TABLE = "update_table"
@@ -17,13 +17,16 @@ class MsgType(str, Enum):
     ACK = "ack"
     SEND_ALL = "send_all"
     SEND_ALL_ACK = "send_all_ack"
+    SEND_ALL_SERVER_ACK = "send_all_server_ack"
     STORE = "store"
     STORE_ACK = "store_ack"
+    LOGOUT = "logout"
 
 
 class Msg:
     server_addr = None
     name = None
+    port = None
 
     def __init__(self,
                  content="",
@@ -47,10 +50,11 @@ class Msg:
         if msg.type_ == MsgType.SEND:
             msg.to = words.pop(0)
         elif msg.type_ == MsgType.REG:
+            msg.from_ = words.pop(0)
+            cls.name = msg.from_
+            words = [str(cls.port)]
             msg.to_server = True
         elif msg.type_ == MsgType.DEREG:
-            msg.to_server = True
-        elif msg.type_ == MsgType.CREATE:
             msg.to_server = True
         elif msg.type_ == MsgType.SEND_ALL:
             msg.to_server = True
@@ -65,7 +69,8 @@ class Msg:
     def to_message(self):
         return Message(self.content,
                        self.from_,
-                       self.to)
+                       self.to,
+                       type_="send_all")
 
     def send(self, socket, **kwargs):
         if self.addr:

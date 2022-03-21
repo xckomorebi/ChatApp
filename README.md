@@ -36,17 +36,40 @@ $ ChatApp -c NAME SERVER-IP SERVER-PORT CLIENT-PORT
 
 Command format
 ===
-- [x] create \<user>
+### Registration
+```
+>>> reg <user>
+```
 
-    broadcast to all user
+### Chatting
+```
+>>> send <name> <message>
+```
 
-- [x] send \<name> \<message>
+### De-registration
+```
+>>> dereg <name>
+```
+### Offline Chat
+```
+>>>
+```
 
-- [ ]
+### Log back in
+```
+>>> reg <name>
+```
+
+### Group Chat
+```
+>>> send_all <message>
+```
 
 
 TODO
 ===
+
+- [ ] can't update table if a certain user log back in from silent leave
 
 ~~- udp hole punching ### FATAL!!!!!!!!!!!!!!!!!!!!~~
 

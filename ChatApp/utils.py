@@ -50,8 +50,24 @@ def check_port(port):
             raise InvalidPortException
     except ValueError:
         raise InvalidPortException
-    
+
     return port
+
 
 def get_timestamp():
     return '{:%Y-%m-%d %H:%M:%S}'.format(datetime.now())
+
+
+def render_offline_messages(messages):
+    template = ">>> {}{}: <{}> {}"
+    result = []
+    for message in messages:
+        is_group = message.get("type_") == "send_all"
+        result.append(template.format(
+            "Channel Message " if is_group else "",
+            message.get("from_"),
+            message.get("timestamp"),
+            message.get("content")
+        ))
+    
+    return "\n".join(result)

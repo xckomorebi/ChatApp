@@ -9,6 +9,11 @@ class User:
         self.port = port
         self.status = status
 
+    def __eq__(self, another):
+        if not isinstance(another, User):
+            return False
+        return self.__dict__ == another.__dict__
+
     @classmethod
     def from_dict(cls, dict_):
         return cls(**dict_)
@@ -16,6 +21,8 @@ class User:
     @classmethod
     def from_list(cls, list_):
         result = []
+        if isinstance(list_, dict):
+            list_ = [list_]
         for dict_ in list_:
             result.append(cls.from_dict(dict_))
         return result
@@ -94,35 +101,44 @@ class Message:
                  content,
                  from_,
                  to,
+                 type_,
                  status="yes",
                  timestamp=get_timestamp()):
         self.content = content
         self.from_ = from_
         self.to = to
+        self.type_ = type_
         self.status = status
         self.timestamp = timestamp
 
     def save(self):
-        sql = "insert into message(content, from_, `to`, timestamp) " \
-              "values(?, ?, ?, ?)"
+        sql = "insert into message(content, from_, `to`, type_, timestamp) " \
+              "values(?, ?, ?, ?, ?)"
         conn = get_conn()
         cursor = conn.cursor()
-        cursor.execute(sql, (self.content, self.from_, self.to, self.timestamp))
+        cursor.execute(sql, (self.content, self.from_,
+                       self.to, self.type_, self.timestamp))
         conn.commit()
 
     @classmethod
     def get_by_name(cls, name):
-        sql = "select * from message where status='yes' and from_=?"
+        sql = "select * from message where status='yes' and `to`=?"
         conn = get_conn()
         cursor = conn.cursor()
         cursor.execute(sql, (name, ))
         messages = cursor.fetchall()
         return messages
-
+ 
     @classmethod
     def clear_message_by_name(cls, name):
-        sql = "update message set status='no' where from_=?"
+        sql = "update message set status='no' where `to`=?"
         conn = get_conn()
         cursor = conn.cursor()
         cursor.execute(sql, (name, ))
         conn.commit()
+
+    @classmethod
+    def retrieve_by_name(cls, name):
+        messages = cls.get_by_name(name)
+        cls.clear_message_by_name(name)
+        return messages
