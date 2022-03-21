@@ -34,7 +34,10 @@ clean_user:
 	@echo "delete from user" | sqlite3 resource/chatapp.db
 
 dummy_user:
-	@echo "insert into user(name, ip, port, status) values('xc-m1', '192.168.0.233', 12345, 'yes'), ('xc-1', '192.168.0.222', 12344, 'yes')" | sqlite3 resource/chatapp.db
+	@echo "insert into user(name, ip, port, status) values('test1', '192.168.0.233', 10001, 'yes'), ('test2', '192.168.0.233', 10002, 'yes')" | sqlite3 resource/chatapp.db
+
+alter_user:
+	@echo "update user set status='no' where name='test2'" | sqlite3 resource/chatapp.db
 
 show_user:
 	@echo "select * from user" | sqlite3 resource/chatapp.db
@@ -47,3 +50,15 @@ dummy_msg:
 
 show_msg:
 	@echo "select * from message" | sqlite3 resource/chatapp.db
+
+server:
+	chatapp -s 12345
+
+test1:
+	chatapp -c test1 192.168.0.233 12345 10001
+
+test2:
+	chatapp -c test2 192.168.0.233 12345 10002
+
+test3:
+	chatapp -c test3 192.168.0.233 12345 10003

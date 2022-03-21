@@ -76,6 +76,16 @@ class User:
         return result
 
     @classmethod
+    def get_all_inactive_users(cls):
+        sql = "select * from user where status='no'"
+        conn = get_conn()
+        cursor = conn.cursor()
+        cursor.execute(sql)
+        result = cursor.fetchall()
+
+        return result
+
+    @classmethod
     def get_all(cls):
         sql = "select * from user"
         conn = get_conn()

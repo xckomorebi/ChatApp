@@ -1,11 +1,11 @@
-from lib2to3.pgen2.token import NAME
 import os
 import threading
+import time
 from socket import *
 
-from ChatApp.settings import TIMEOUT, DEBUG
 from ChatApp.models import User
 from ChatApp.msg import Msg, MsgType
+from ChatApp.settings import DEBUG, TIMEOUT
 from ChatApp.utils import render_offline_messages
 
 
@@ -23,6 +23,31 @@ def handle_sent_msg(input_):
 
     if type_ == MsgType.SEND:
         try:
+            name = msg.to
+            user = User.get_by_name(name)
+            if not user:
+                print(f">>> [No such user: {name}]")
+                return
+            
+            if user.status == "no":
+                for retry in range(5):
+                    msg.type_ = MsgType.STORE
+                    msg.to_server = True
+                    try:
+                        msg.send(sock)
+                        sock.settimeout(2*TIMEOUT)
+                        rcv_msg = Msg.unpack(sock.recv(2048))
+                        if rcv_msg.type_ == MsgType.STORE_ACK:
+                            print(">>> [Message received by the server and saved.]")
+                        elif rcv_msg.type_ == MsgType.USER_EXIST:
+                            print(f">>> Client <{name}> exists!!]")
+                        return
+                    except timeout:
+                        pass
+                print(">>> [Server not responding]\n>>> [Exiting]")
+                os._exit(0)
+
+
             msg.send(sock)
             rcv_packet = sock.recv(2048)
             rcv_msg = Msg.unpack(rcv_packet)
@@ -32,13 +57,21 @@ def handle_sent_msg(input_):
             print(f">>> [No ACK from <{msg.to}>, message sent to server.]")
             msg.type_ = MsgType.STORE
             msg.to_server = True
-            msg.send(sock)
-            try:
-                rcv_msg = Msg.unpack(sock.recv(2048))
-                if rcv_msg.type_ == MsgType.STORE_ACK:
-                    print(">>> [Message received by the server and saved.]")
-            except timeout:
-                pass
+
+            sock.settimeout(2*TIMEOUT)
+
+            for retry in range(5):
+                try:
+                    msg.send(sock)
+                    rcv_msg = Msg.unpack(sock.recv(2048))
+                    if rcv_msg.type_ == MsgType.STORE_ACK:
+                        print(">>> [Message received by the server and saved.]")
+                    return
+                except timeout:
+                    pass
+            print(">>> [Server not responding]\n>>> [Exiting]")
+            os._exit(0)
+
     elif type_ == MsgType.REG:
         if STATUS:
             print(">>> [You are online, please log out first.]")
@@ -65,6 +98,7 @@ def handle_sent_msg(input_):
                         f">>> retry {retry+1}: not respond, exit after 5 retries")
         print(">>> [Server not responding]\n>>> [Exiting]")
         os._exit(0)
+
     elif type_ == MsgType.DEREG:
         for retry in range(5):
             try:
@@ -115,7 +149,7 @@ def handle_received_msg(msg, addr, sock):
         print(
             f"[Channel_Message <{rcv_msg.from_}>: {rcv_msg.content}]\n>>> ", end="")
         Msg(type_=MsgType.SEND_ALL_ACK,
-            to_server=True,
+            addr=addr,
             from_=rcv_msg.to,
             to=rcv_msg.from_).send(sock)
 
@@ -123,6 +157,11 @@ def handle_received_msg(msg, addr, sock):
         if rcv_msg.to == NAME:
             print("[You login to a new device]\n>>> [exiting]")
             os._exit(0)
+    
+    elif type_ == MsgType.TEST:
+        if rcv_msg.to == NAME:
+            rcv_msg.addr = addr
+            rcv_msg.send(sock)
 
 
 def client_send_msg():

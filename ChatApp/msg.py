@@ -21,6 +21,9 @@ class MsgType(str, Enum):
     STORE = "store"
     STORE_ACK = "store_ack"
     LOGOUT = "logout"
+    USER_EXIST = "user_exist"
+    # OFFLINE = "offline"
+    TEST = "test"
 
 
 class Msg:
@@ -66,11 +69,11 @@ class Msg:
 
         return msg
 
-    def to_message(self):
+    def to_message(self, to=None):
         return Message(self.content,
                        self.from_,
-                       self.to,
-                       type_="send_all")
+                       to or self.to,
+                       self.type_)
 
     def send(self, socket, **kwargs):
         if self.addr:
@@ -87,7 +90,7 @@ class Msg:
         socket.sendto(self.pack(), addr)
 
     def get_receiver_list(self):
-        users = User.get_all()
+        users = User.get_all_active_users()
         from_ = self.from_
 
         receivers = [u.get("name") for u in users if u.get("name") != from_]

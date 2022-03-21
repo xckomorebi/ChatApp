@@ -8,9 +8,10 @@ DB_PATH = os.path.join(PROJECT_PATH, "resource", DB_NAME)
 PORT_MIN = 1024
 PORT_MAX = 65535
 
-DEBUG = os.getenv("CHAT_APP_DEBUG", False)
+# DEBUG = os.getenv("CHAT_APP_DEBUG", False)
+DEBUG = False
 
 if DEBUG:
-    TIMEOUT = 0.5
+    TIMEOUT = 30
 else:
     TIMEOUT = 0.5
