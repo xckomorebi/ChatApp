@@ -132,7 +132,8 @@ def server_handle_received_msg(sock, msg, addr):
         rcv_msg.to_server = False
         broadcast(rcv_msg)
 
-        print(User.get_all_inactive_users())
+        if DEBUG:
+            print(User.get_all_inactive_users())
 
         for user_dict in User.get_all_inactive_users():
             rcv_msg.to_message(user_dict.get("name")).save()
