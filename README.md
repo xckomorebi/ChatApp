@@ -9,29 +9,41 @@ Installation
 ===
 This app is supposed to run with minimum dependencies.
 
-Server side: make sure you have `python3` and `sqlite3` installed on your machine
-
-Client side: `python3`
+make sure you have `python3` and `sqlite3` installed on your machine
 
 ```bash
 $ git clone "https://github.com/xckomorebi/ChatApp"
 $ cd ChatApp
-$ make install # optional //TODO
+$ 
+$ # if you want to add this script to /user/local/bin
+$ make install
+$ ChatApp <args>
+$ 
+$ # or just create the database
+$ make init_db
+$ python ChatApp.py <args>
 ```
 
 Usage: (TODO)
 ===
-### start server
+## start server
 ```bash
 $ ChatApp -s PORT
-(some welcome message)
+(main loop start, no output)
 ```
+or
+```bash
+$ ChatApp -s PORT &
+[1] <pid>
+$ 
+```
+to run server in background
 
-### start client
+## start client
 ```bash
 $ ChatApp -c NAME SERVER-IP SERVER-PORT CLIENT-PORT
-(some welcome message)
->>>
+>>> [Welcome, you are registered.]
+>>> <user input>
 ```
 
 Command format
@@ -50,9 +62,17 @@ Command format
 ```
 >>> dereg <name>
 ```
+### Group Chat
+```
+>>> send_all <message>
+```
 ### Offline Chat
 ```
->>>
+>>> send <name> <message> # user <name> is offline
+```
+
+```
+>>> send_all <message>
 ```
 
 ### Log back in
@@ -60,16 +80,12 @@ Command format
 >>> reg <name>
 ```
 
-### Group Chat
-```
->>> send_all <message>
-```
 
 
 TODO
 ===
 
-- [ ] can't update table if a certain user log back in from silent leave
+- [x] can't update table if a certain user log back in from silent leave
 
 ~~- udp hole punching ### FATAL!!!!!!!!!!!!!!!!!!!!~~
 
@@ -80,15 +96,15 @@ TODO
 - [x] Registration
   - [x] Client mode
   - [x] Server mode
-- [ ] De-registration
-  - [ ] Client
-  - [ ] Server
-- [ ] Offline Chat
-  - [ ] Client
-  - [ ] Server
-- [ ] Group Chat
+- [x] De-registration
+  - [x] Client
+  - [x] Server
+- [x] Offline Chat
+  - [x] Client
+  - [x] Server
+- [x] Group Chat
   - [x] basic
-  - [ ] ack
+  - [x] ack
 - [ ] Testing
 - [ ] github pipeline (low priority)
 - [ ] Deployment

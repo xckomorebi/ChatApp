@@ -91,6 +91,7 @@ def handle_sent_msg(input_):
                         print(">>> [Welcome back!]")
 
                 STATUS = True
+                Msg.name = msg.from_
                 return
             except timeout:
                 if DEBUG:

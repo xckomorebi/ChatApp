@@ -1,15 +1,19 @@
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 mkfile_dir := $(dir $(mkfile_path))
 
-.PHONY: init_user, init_message, init_db, install
+.PHONY: init_user, init_message, init_db, install, clean_cache
 
-init_user: sql/user.sql
-	@cat sql/user.sql | sqlite3 resource/chatapp.db
+init_user: sql/init_user.py
+	python3 sql/init_user.py
 
-init_message: sql/message.sql
-	@cat sql/message.sql | sqlite3 resource/chatapp.db
+init_message: sql/init_message.py
+	python3 sql/init_message.py
 
-init_db: init_user, init_message
+init_db: init_user init_message
+
+clean_cache:
+	find . -name "*.pyc" -delete
+	find . -type d -name "__pycache__" -delete
 
 install: init_db
 	@while true; do \
