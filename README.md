@@ -1,30 +1,38 @@
 ChatApp
 ===
+__Name: Chen Xu__
+
+__UNI: cx2255__
+
+---
 
 A simple chat application with at least 3 clients and a server using UDP (programming assignment 1 of CSEE4119 Computer Networks).
 
 The program has two modes, the client mode and the server mode. The client instances communicate directly with each other. The server instance is used to set up clients and for book-keeping purposes.  The server is also used to store off-line messages  from clients and broadcast channel messages to all clients within a predefined communication channel (group chat).
 
-Installation
+Installation 
 ===
+
 This app is supposed to run with minimum dependencies.
 
 make sure you have `python3` and `sqlite3` installed on your machine
 
+(update: `sqlite3` binary executable is optional, but make sure your `python3` comes with a sqlite3 module. On ubuntu 18.04 LTS this is by default, but I do know it's not always the case for all distros)
+
 ```bash
 $ git clone "https://github.com/xckomorebi/ChatApp"
 $ cd ChatApp
-$ 
+
 $ # if you want to add this script to /user/local/bin
 $ make install
 $ ChatApp <args>
-$ 
+
 $ # or just create the database
 $ make init_db
 $ python ChatApp.py <args>
 ```
 
-Usage: (TODO)
+Usage:
 ===
 ## start server
 ```bash
@@ -50,8 +58,10 @@ Command format
 ===
 ### Registration
 ```
->>> reg <user>
+>>> reg <username>
 ```
+
+
 
 ### Chatting
 ```
@@ -66,20 +76,6 @@ Command format
 ```
 >>> send_all <message>
 ```
-### Offline Chat
-```
->>> send <name> <message> # user <name> is offline
-```
-
-```
->>> send_all <message>
-```
-
-### Log back in
-```
->>> reg <name>
-```
-
 
 
 TODO
@@ -87,12 +83,11 @@ TODO
 
 - [x] can't update table if a certain user log back in from silent leave
 
-~~- udp hole punching ### FATAL!!!!!!!!!!!!!!!!!!!!~~
+- [ ] ~~udp hole punching ### FATAL!!!!!!!!!!!!!!!!!!!!~~
 
 - [x] Command options
 - [x] Makefile
 - [x] Chatting
-- [ ] Logging
 - [x] Registration
   - [x] Client mode
   - [x] Server mode
@@ -105,7 +100,8 @@ TODO
 - [x] Group Chat
   - [x] basic
   - [x] ack
-- [ ] Testing
+- [x] Testing
 - [ ] github pipeline (low priority)
-- [ ] Deployment
+- [ ] Logging (low priority)
+- [ ] ~~Deployment~~
 - [ ] Submission

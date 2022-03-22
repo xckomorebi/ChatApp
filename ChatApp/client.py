@@ -1,8 +1,8 @@
 import os
 import threading
-import time
 from socket import *
 
+from ChatApp.exceptions import CommandFormatNotSupport
 from ChatApp.models import User
 from ChatApp.msg import Msg, MsgType
 from ChatApp.settings import DEBUG, TIMEOUT
@@ -17,7 +17,11 @@ def handle_sent_msg(input_):
     if isinstance(input_, Msg):
         msg = input_
     else:
-        msg = Msg.from_input(input_)
+        try:
+            msg = Msg.from_input(input_)
+        except CommandFormatNotSupport:
+            print(">>> [Command format not support, please check user manual]")
+            return
 
     type_ = msg.type_
 
@@ -28,7 +32,7 @@ def handle_sent_msg(input_):
             if not user:
                 print(f">>> [No such user: {name}]")
                 return
-            
+
             if user.status == "no":
                 for retry in range(5):
                     msg.type_ = MsgType.STORE
@@ -38,7 +42,8 @@ def handle_sent_msg(input_):
                         sock.settimeout(2*TIMEOUT)
                         rcv_msg = Msg.unpack(sock.recv(2048))
                         if rcv_msg.type_ == MsgType.STORE_ACK:
-                            print(">>> [Message received by the server and saved.]")
+                            print(
+                                ">>> [Message received by the server and saved.]")
                         elif rcv_msg.type_ == MsgType.USER_EXIST:
                             print(f">>> Client <{name}> exists!!]")
                         return
@@ -46,7 +51,6 @@ def handle_sent_msg(input_):
                         pass
                 print(">>> [Server not responding]\n>>> [Exiting]")
                 os._exit(0)
-
 
             msg.send(sock)
             rcv_packet = sock.recv(2048)
@@ -65,7 +69,8 @@ def handle_sent_msg(input_):
                     msg.send(sock)
                     rcv_msg = Msg.unpack(sock.recv(2048))
                     if rcv_msg.type_ == MsgType.STORE_ACK:
-                        print(">>> [Message received by the server and saved.]")
+                        print(
+                            ">>> [Message received by the server and saved.]")
                     return
                 except timeout:
                     pass
@@ -76,7 +81,7 @@ def handle_sent_msg(input_):
         if STATUS:
             print(">>> [You are online, please log out first.]")
             return
-    
+
         for retry in range(5):
             try:
                 msg.send(sock)
@@ -158,7 +163,7 @@ def handle_received_msg(msg, addr, sock):
         if rcv_msg.to == NAME:
             print("[You login to a new device]\n>>> [exiting]")
             os._exit(0)
-    
+
     elif type_ == MsgType.TEST:
         if rcv_msg.to == NAME:
             rcv_msg.addr = addr
@@ -179,7 +184,14 @@ def client_send_msg():
         if STATUS:
             handle_sent_msg(msg)
         else:
-            if Msg.from_input(msg).type_ == MsgType.REG:
+            try:
+                msg = Msg.from_input(msg)
+            except CommandFormatNotSupport:
+                print(
+                    ">>> [Command format not support, please check user manual]")
+                continue
+
+            if msg.type_ == MsgType.REG:
                 handle_sent_msg(msg)
             else:
                 print(">>> [you are offline.]")

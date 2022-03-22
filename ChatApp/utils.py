@@ -1,7 +1,6 @@
-import json
 import os
+import socket
 import sqlite3
-import sys
 
 from datetime import datetime
 
@@ -31,16 +30,18 @@ def get_conn():
 
 
 def check_ip(ip):
-    if not is_valid_ip:
+    # if not is_valid_ip(ip):
+    try:
+        ip = socket.gethostbyname(ip)
+        return ip
+    except socket.gaierror:
         raise InvalidIpException
-    return ip
 
-
-def is_valid_ip(ip: str):
-    nums = ip.split(".")
-    if len(nums) != 4:
-        return False
-    return all(map(lambda x: 0 <= int(x) <= 255, nums))
+# def is_valid_ip(ip: str):
+#     nums = ip.split(".")
+#     if len(nums) != 4:
+#         return False
+#     return all(map(lambda x: 0 <= int(x) <= 255, nums))
 
 
 def check_port(port):
@@ -69,5 +70,5 @@ def render_offline_messages(messages):
             message.get("timestamp"),
             message.get("content")
         ))
-    
+
     return "\n".join(result)

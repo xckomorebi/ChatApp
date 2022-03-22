@@ -2,8 +2,8 @@ import json
 from enum import Enum
 from typing import ByteString
 
-# from ChatApp import settings
-from ChatApp.models import User, Message
+from ChatApp.exceptions import CommandFormatNotSupport, CommandNoPermission
+from ChatApp.models import Message, User
 
 
 class MsgType(str, Enum):
@@ -49,18 +49,25 @@ class Msg:
     def from_input(cls, user_input, **kwargs):
         words = user_input.split()
         msg = Msg()
-        msg.type_ = MsgType(words.pop(0))
-        if msg.type_ == MsgType.SEND:
-            msg.to = words.pop(0)
-        elif msg.type_ == MsgType.REG:
-            msg.from_ = words.pop(0)
-            cls.name = msg.from_
-            words = [str(cls.port)]
-            msg.to_server = True
-        elif msg.type_ == MsgType.DEREG:
-            msg.to_server = True
-        elif msg.type_ == MsgType.SEND_ALL:
-            msg.to_server = True
+        try:
+            msg.type_ = MsgType(words.pop(0))
+            if msg.type_ == MsgType.SEND:
+                msg.to = words.pop(0)
+            elif msg.type_ == MsgType.REG:
+                if len(words) == 0:
+                    raise CommandFormatNotSupport
+                msg.from_ = words.pop(0)
+                cls.name = msg.from_
+                words = [str(cls.port)]
+                msg.to_server = True
+            elif msg.type_ == MsgType.DEREG:
+                msg.to_server = True
+            elif msg.type_ == MsgType.SEND_ALL:
+                msg.to_server = True
+            else:
+                raise CommandNoPermission
+        except (ValueError, CommandNoPermission):
+            raise CommandFormatNotSupport
 
         msg.content = " ".join(words)
 

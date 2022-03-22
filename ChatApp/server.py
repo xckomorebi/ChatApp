@@ -1,9 +1,9 @@
 import threading
 from socket import *
 
-from ChatApp.models import User, Message
+from ChatApp.models import Message, User
 from ChatApp.msg import Msg, MsgType
-from ChatApp.settings import TIMEOUT, DEBUG
+from ChatApp.settings import DEBUG, TIMEOUT
 from ChatApp.utils import get_timestamp
 
 
